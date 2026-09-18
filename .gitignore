@@ -1,0 +1,54 @@
+# Secrets and local sessions — never push
+.env
+.env.*
+!.env.example
+browser_profile/
+.pw-browsers/
+*.db
+*.db-wal
+*.db-shm
+
+# Personal profile — never publish
+local/*
+!local/README.md
+!local/profile.env.example
+.cursor/skills/rewrite-cv/experience.md
+.cursor/skills/rewrite-cv/old-resume.png
+.cursor/skills/rewrite-cv/preview.png
+.cursor/skills/rewrite-cv/template.html
+*.pdf
+cv*.html
+cv-*.md
+tailored-*.md
+.cursor/mcp.json
+interview-prep/*.md
+!interview-prep/README.md
+djinni-mcp/apply_batch*.py
+djinni-mcp/do_apply.py
+djinni-mcp/apply_smart.py
+djinni-mcp/inspect_forms.py
+
+# Python / tooling
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Playwright / MCP dumps
+debug/
+*.png
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Runtime
+dou-mcp/applied.db*
+*.log
+*.har
+cookies.json
+storage_state.json

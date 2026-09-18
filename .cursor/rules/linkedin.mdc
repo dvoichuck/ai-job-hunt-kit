@@ -1,0 +1,13 @@
+---
+description: Rules for LinkedIn inbox replies from this repo
+alwaysApply: true
+---
+
+# LinkedIn inbox
+
+- Факти лише з `experience.md` (локальний файл, не в git). Без вигадок.
+- Контракт, notice, локація, зарплата — з `local/profile.env`.
+- Не завищувати стек. NDA — з профілю.
+- Не спамити; короткі відповіді рекрутерам.
+- У вже відкритому треді не вітатись повторно (див. `messenger-replies.mdc`).
+- Інтеграція: `linkedin-mcp/` (Playwright). Сесія в `linkedin-mcp/browser_profile/` — не комітити.

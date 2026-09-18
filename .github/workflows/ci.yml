@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: No personal tokens in the tree
+        run: |
+          if git grep -n -i -E \
+            'voichuk|dmytro voichuk|ligo partners|/home/dima|denys kravchenko' \
+            -- ':!.github/workflows/ci.yml'; then
+            echo "personal token found in tracked files" >&2
+            exit 1
+          fi
+
+      - name: Compile Python
+        run: |
+          python -m py_compile \
+            candidate.py \
+            filters.py \
+            dou-mcp/server.py \
+            dou-mcp/ats.py \
+            dou-mcp/applied.py \
+            dou-mcp/profile_content.py \
+            djinni-mcp/server.py \
+            djinni-mcp/cover_letters.py \
+            djinni-mcp/apply_auto.py \
+            linkedin-mcp/server.py

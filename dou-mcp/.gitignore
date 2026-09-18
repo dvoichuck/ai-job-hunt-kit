@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+# Local Playwright browser binaries
+.pw-browsers/
+# Persistent browser profile with your DOU login session – NEVER commit this
+browser_profile/
+debug/
+applied.db
+applied.db-wal
+applied.db-shm

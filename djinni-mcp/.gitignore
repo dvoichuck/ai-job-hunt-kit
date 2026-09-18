@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+# Local Playwright browser binaries
+.pw-browsers/
+# Persistent browser profile with your Djinni login session – NEVER commit this
+browser_profile/
+debug/

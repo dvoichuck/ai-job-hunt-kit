@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "djinni": {
+      "command": "./djinni-mcp/.venv/bin/python",
+      "args": ["./djinni-mcp/server.py"],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "./djinni-mcp/.pw-browsers",
+        "DJINNI_PROFILE_DIR": "./djinni-mcp/browser_profile",
+        "DJINNI_DEBUG_DIR": "./djinni-mcp/debug",
+        "DJINNI_HEADLESS": "1"
+      }
+    },
+    "dou": {
+      "command": "./dou-mcp/.venv/bin/python",
+      "args": ["./dou-mcp/server.py"],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "./djinni-mcp/.pw-browsers",
+        "DOU_PROFILE_DIR": "./dou-mcp/browser_profile",
+        "DOU_DEBUG_DIR": "./dou-mcp/debug",
+        "DOU_HEADLESS": "1"
+      }
+    },
+    "linkedin": {
+      "command": "./linkedin-mcp/.venv/bin/python",
+      "args": ["./linkedin-mcp/server.py"],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "./djinni-mcp/.pw-browsers",
+        "LI_PROFILE_DIR": "./linkedin-mcp/browser_profile",
+        "LI_DEBUG_DIR": "./linkedin-mcp/debug",
+        "LI_HEADLESS": "1"
+      }
+    }
+  }
+}

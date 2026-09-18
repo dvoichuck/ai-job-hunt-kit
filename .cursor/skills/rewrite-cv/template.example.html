@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Candidate — CV</title>
+<style>
+  @page { size: A4; margin: 12mm 15mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Noto Sans", Arial, Helvetica, sans-serif;
+    color: #1f2937;
+    font-size: 10pt;
+    line-height: 1.33;
+    margin: 0;
+  }
+  header { border-bottom: 0.8pt solid #E2E8F0; padding-bottom: 6pt; margin-bottom: 9pt; }
+  h1 { font-size: 22pt; font-weight: 700; color: #0F172A; margin: 0; letter-spacing: .2px; }
+  .title { font-size: 10.5pt; color: #1F4E79; font-weight: 600; margin: 3pt 0 5pt; }
+  .contacts { font-size: 9pt; color: #4B5563; }
+  .contacts a { color: #1F4E79; text-decoration: none; }
+  h2 {
+    font-size: 9.7pt; font-weight: 700; text-transform: uppercase; letter-spacing: .9px;
+    color: #0F172A; border-bottom: 0.7pt solid #CBD5E1;
+    padding-bottom: 2pt; margin: 9pt 0 4pt;
+  }
+  .job { margin-top: 6pt; }
+  .jobhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10pt; }
+  h3 { font-size: 10.5pt; font-weight: 700; color: #0F172A; margin: 0; }
+  .role { font-weight: 400; color: #374151; }
+  .dates { font-size: 9pt; color: #6B7280; white-space: nowrap; }
+  .oneliner { font-style: italic; color: #374151; margin: 2pt 0 2pt; }
+  ul { margin: 2pt 0 3pt; padding-left: 14pt; }
+  li { margin: 1.5pt 0; }
+  .tech { font-size: 9pt; color: #4B5563; margin: 2pt 0; }
+  .tech b { color: #0F172A; font-weight: 700; }
+  p { margin: 4pt 0; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Candidate Name</h1>
+    <div class="title">Full-Stack Developer</div>
+    <div class="contacts">
+      City ·
+      <a href="mailto:you@example.com">you@example.com</a> ·
+      <a href="https://example.com">portfolio</a>
+    </div>
+  </header>
+  <section>
+    <h2>Summary</h2>
+    <p>3–4 lines from experience.md: who, years, stack, domains. No invented metrics.</p>
+  </section>
+  <section>
+    <h2>Work Experience</h2>
+    <div class="job">
+      <div class="jobhead">
+        <h3>Company <span class="role">— Role</span></h3>
+        <span class="dates">Month Year – Month Year</span>
+      </div>
+      <p class="oneliner">One sentence: product and business problem.</p>
+      <ul>
+        <li>Action verb + what you built + tech + result from experience.md.</li>
+      </ul>
+      <p class="tech"><b>Tech:</b> stack for this project only.</p>
+    </div>
+  </section>
+  <section>
+    <h2>Education &amp; Languages</h2>
+    <p class="tech"><b>Education:</b> from experience.md.</p>
+    <p class="tech"><b>Languages:</b> from experience.md.</p>
+  </section>
+</body>
+</html>

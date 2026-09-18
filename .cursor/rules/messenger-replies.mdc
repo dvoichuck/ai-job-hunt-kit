@@ -1,0 +1,33 @@
+---
+description: How to reply in Djinni, LinkedIn, DOU, and any messenger thread
+alwaysApply: true
+---
+
+# Messenger replies (Djinni, LinkedIn, DOU, будь-який чат)
+
+Це стосується **усіх** інбоксів: LinkedIn, Djinni, DOU, Telegram, email-тред, тощо.
+
+## Не вітатись повторно
+
+- **Перше повідомлення в новому діалозі** — одне коротке вітання ок (`Hi <Name>,` / `Добрий день`).
+- **Якщо в треді вже є наше повідомлення або їхня відповідь** — **не починати з Hi / Hello / Hey / Добрий день / Вітаю / ім’я в привітанні.** Ми щойно вітались. Одразу по суті.
+- Не дублювати повний sign-off у кожному follow-up того ж треду. У продовженні діалогу — лише текст відповіді.
+
+```
+❌ (друге повідомлення в чаті)
+Hi <Name>,
+
+Thanks — I've reviewed the JD. Attaching my current CV.
+
+Best,
+Name
+
+✅
+Thanks — I've reviewed the JD. Attaching my current CV.
+```
+
+## Інше
+
+- Коротко. Не спамити. Цифри/стек лише з локального `experience.md`.
+- Зарплату **не писати**, поки не запитали.
+- NDA — з `local/profile.env`.

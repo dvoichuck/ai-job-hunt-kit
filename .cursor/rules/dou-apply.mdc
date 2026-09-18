@@ -1,0 +1,14 @@
+---
+description: Rules for applying to DOU jobs from this repo
+alwaysApply: true
+---
+
+# DOU apply / profile
+
+- Факти лише з `experience.md` (локальний файл, не в git). Без вигадок.
+- Контракт, notice, локація, зарплата — з `local/profile.env`.
+- Вілку зарплати в профілі можна тимчасово змінювати, щоб відкрити відгук. Після відгуку повернути профільне значення.
+- NDA і стеки — з профілю / experience.md.
+- Не спамити відгуками; не подаватись повторно.
+- У вже відкритому треді не вітатись повторно (див. `messenger-replies.mdc`).
+- Інтеграція: `dou-mcp/` (Playwright). Сесія в `dou-mcp/browser_profile/` — не комітити.
