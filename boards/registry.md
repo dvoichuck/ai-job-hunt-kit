@@ -12,3 +12,10 @@ Status of each account is in `accounts.md`, not here.
 | indeed | [Indeed](https://www.indeed.com/) | Account required | web |
 
 Add rows for boards you actually use. Skip aggregators that only bounce to the above.
+
+## Company ATS
+
+DOU (and some LinkedIn Easy Apply pages) bounce to a vendor form. Automation for
+those hosts lives in `dou-mcp/ats.py`: Teamtailor, Ashby, Workable, Greenhouse,
+Lever, PeopleForce, TalentLyft, Recruitee, plus a generic fallback. Unknown
+screening questions stay `needs_review` — do not invent answers.
