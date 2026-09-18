@@ -1,11 +1,11 @@
 """
-LinkedIn MCP server (inbox / recruiter messages).
+LinkedIn MCP server (inbox + profile pack).
 
-Exposes LinkedIn messaging as MCP tools driven by Playwright:
-  - login          : open a real browser once, log in manually; session reused.
-  - list_inbox     : list conversations (optional unread-only).
-  - read_thread    : read one conversation.
-  - send_message   : reply in a conversation.
+Exposes LinkedIn as MCP tools driven by Playwright:
+  - login / session_status
+  - list_inbox / read_thread / send_message
+  - apply_profile_pack and per-section profile updates from local/linkedin.pack.json
+  - upload_cv           : upload CANDIDATE_CV to saved resumes / application settings
   - debug_screenshot / debug_dump_html
 
 LinkedIn has no public messaging API for candidates, so this uses YOUR
@@ -23,6 +23,7 @@ import contextlib
 import json
 import os
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
@@ -96,8 +97,19 @@ SELECTORS = {
     ),
 }
 
+from browser import LOCK as _LOCK
+from browser import browser as _pack_browser
+import profile as li_profile
+import upload_cv as li_upload
+
 mcp = FastMCP("linkedin")
-_LOCK = asyncio.Lock()
+
+
+async def _guarded(coro, timeout: int = 300) -> Any:
+    try:
+        return await asyncio.wait_for(coro, timeout=timeout)
+    except asyncio.TimeoutError:
+        return {"error": f"timed out after {timeout}s", "hint": "check debug/ screenshots"}
 
 
 # --------------------------------------------------------------------------- #
@@ -106,6 +118,9 @@ _LOCK = asyncio.Lock()
 @contextlib.asynccontextmanager
 async def browser(headless: Optional[bool] = None):
     PROFILE_DIR.mkdir(parents=True, exist_ok=True)
+    for name in ("SingletonLock", "SingletonCookie", "SingletonSocket"):
+        with contextlib.suppress(Exception):
+            (PROFILE_DIR / name).unlink()
     use_headless = HEADLESS if headless is None else headless
     kwargs = dict(
         user_data_dir=str(PROFILE_DIR),
@@ -549,8 +564,8 @@ async def login(wait_seconds: int = 240) -> str:
             while asyncio.get_event_loop().time() < deadline:
                 if await _is_logged_in(page):
                     return (
-                        "Logged in successfully. Session saved — you can now use "
-                        "`list_inbox`, `read_thread` and `send_message` headlessly."
+                        "Logged in successfully. Session saved — inbox and "
+                        "`apply_profile_pack` can run headlessly."
                     )
                 await asyncio.sleep(2)
             if await _is_logged_in(page):
@@ -751,6 +766,153 @@ async def send_message(thread: str, text: str, confirm: bool = True) -> dict[str
                 "url": pg.url,
                 "screenshot": shot,
             }
+
+
+@mcp.tool()
+async def session_status() -> dict[str, Any]:
+    """Check whether the Playwright profile is logged in and return a profile snapshot."""
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            return await _guarded(li_profile.snapshot(page), 90)
+
+
+@mcp.tool()
+async def apply_profile_pack() -> dict[str, Any]:
+    """Fill the LinkedIn profile from local/linkedin.pack.json (or LI_PACK).
+
+    Long. If it times out, read `pack_progress` — finished steps are already saved.
+    """
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            return await _guarded(li_profile.apply_pack(page), 900)
+
+
+@mcp.tool()
+async def upload_cv() -> dict[str, Any]:
+    """Upload the PDF from CANDIDATE_CV to LinkedIn saved resumes / job settings."""
+    sys.path.insert(0, str(HERE.parent))
+    import candidate as C
+
+    pdf = C.CV_PATH
+    if not pdf.is_file():
+        return {"error": f"CV not found: {pdf}. Set CANDIDATE_CV."}
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            from browser import goto, is_logged_in, dismiss_noise
+
+            await goto(page, f"{BASE_URL}/feed/")
+            await dismiss_noise(page)
+            if not await is_logged_in(page):
+                return {"error": "Not logged in. Run `login` first.", "url": page.url}
+            return await _guarded(li_upload.upload_cv(page, str(pdf)), 180)
+
+
+@mcp.tool()
+async def pack_progress() -> dict[str, Any]:
+    """Read debug/progress.json — which pack steps already ran, even mid-run."""
+    path = HERE / "debug" / "progress.json"
+    if not path.exists():
+        return {"steps": [], "note": "no run yet"}
+    return {"steps": json.loads(path.read_text(encoding="utf-8"))}
+
+
+@mcp.tool()
+async def update_intro() -> dict[str, Any]:
+    """Write name, headline, industry, location from the local pack."""
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            return await _guarded(li_profile.update_intro(page, li_profile.load_pack()), 180)
+
+
+@mcp.tool()
+async def update_about() -> dict[str, Any]:
+    """Write the About section from the local pack."""
+    pack = li_profile.load_pack()
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            return await _guarded(li_profile.update_about(page, pack.get("about") or ""), 180)
+
+
+@mcp.tool()
+async def add_experience(company: Optional[str] = None) -> dict[str, Any]:
+    """Add experience entries from the local pack. Pass company to add only that job."""
+    pack = li_profile.load_pack()
+    jobs = pack.get("experience") or []
+    if company:
+        jobs = [j for j in jobs if str(j.get("company", "")).lower() == company.lower()]
+        if not jobs:
+            return {"error": f"No pack experience named {company}"}
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            out = []
+            for job in jobs:
+                out.append(await _guarded(li_profile.add_experience(page, job), 180))
+            return {"results": out}
+
+
+@mcp.tool()
+async def add_education() -> dict[str, Any]:
+    """Add education rows from the local pack."""
+    pack = li_profile.load_pack()
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            out = []
+            for edu in pack.get("education") or []:
+                out.append(await _guarded(li_profile.add_education(page, edu), 180))
+            return {"results": out}
+
+
+@mcp.tool()
+async def add_skills() -> dict[str, Any]:
+    """Add skills from the local pack."""
+    pack = li_profile.load_pack()
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            return await _guarded(li_profile.add_skills(page, pack.get("skills") or []), 600)
+
+
+@mcp.tool()
+async def add_languages() -> dict[str, Any]:
+    """Add languages from the local pack."""
+    pack = li_profile.load_pack()
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            out = []
+            for lang in pack.get("languages") or []:
+                out.append(
+                    await _guarded(
+                        li_profile.add_language(page, lang["name"], lang["proficiency"]),
+                        180,
+                    )
+                )
+            return {"results": out}
+
+
+@mcp.tool()
+async def set_open_to_work() -> dict[str, Any]:
+    """Turn on Open to work from pack.json titles / remote."""
+    pack = li_profile.load_pack()
+    otw = pack.get("open_to_work") or {}
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            return await _guarded(
+                li_profile.set_open_to_work(
+                    page, otw.get("titles") or [], bool(otw.get("remote", True))
+                ),
+                180,
+            )
+
+
+@mcp.tool()
+async def set_custom_url() -> dict[str, Any]:
+    """Set the public profile URL from pack custom_url_candidates."""
+    pack = li_profile.load_pack()
+    async with _LOCK:
+        async with _pack_browser() as (_ctx, page):
+            return await _guarded(
+                li_profile.set_custom_url(page, pack.get("custom_url_candidates") or []),
+                180,
+            )
 
 
 @mcp.tool()

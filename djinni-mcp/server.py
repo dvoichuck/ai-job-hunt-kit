@@ -4,6 +4,10 @@ Djinni MCP server.
 Exposes Djinni.co candidate actions as MCP tools driven by Playwright:
   - login            : open a real browser once, log in manually; the session is
                        stored in a persistent profile and reused by every other tool.
+  - session_status   : whether the saved session is still logged in.
+  - apply_profile_pack / update_profile / upload_cv : write the local profile.
+  - get_profile      : structured candidate profile fields.
+  - audit_profile    : empty vs filled visible form fields + banners.
   - search_jobs      : search vacancies by filters (returns structured results).
   - get_job          : full text of a single vacancy + whether you already applied.
   - apply            : send an application (cover letter) to a vacancy.
@@ -31,6 +35,7 @@ from __future__ import annotations
 import asyncio
 import os
 import re
+import sys
 import contextlib
 from datetime import datetime
 from pathlib import Path
@@ -229,6 +234,58 @@ async def login(wait_seconds: int = 180) -> str:
 
 
 @mcp.tool()
+async def session_status() -> dict[str, Any]:
+    """Check whether the Playwright profile is logged in."""
+    async with _LOCK:
+        async with browser() as (_ctx, page):
+            await _goto(page, PROFILE_URL)
+            logged = await _is_logged_in(page)
+            return {
+                "logged_in": logged,
+                "url": page.url,
+                "screenshot": await _screenshot(page, "session"),
+                "hint": "" if logged else "Run `login` first.",
+            }
+
+
+@mcp.tool()
+async def apply_profile_pack(confirm: bool = True) -> dict[str, Any]:
+    """Fill the Djinni profile from local/profile.env (candidate.py)."""
+    sys.path.insert(0, str(HERE.parent))
+    import candidate as C
+
+    return await update_profile(
+        position=C.TITLE,
+        moreinfo=C.ABOUT_EN or C.ABOUT_UK,
+        salary_min=C.SALARY_NET,
+        experience_years=C.YEARS,
+        city=C.CITY,
+        add_skills=C.SKILLS or None,
+        confirm=confirm,
+    )
+
+
+@mcp.tool()
+async def upload_cv() -> dict[str, Any]:
+    """Upload the PDF from CANDIDATE_CV to Djinni account / resume pages."""
+    sys.path.insert(0, str(HERE.parent))
+    import candidate as C
+    from upload_cv import upload_cv as _upload
+
+    pdf = C.CV_PATH
+    if not pdf.is_file():
+        return {"error": f"CV not found: {pdf}. Set CANDIDATE_CV."}
+    async with _LOCK:
+        async with browser() as (_ctx, page):
+            await _goto(page, PROFILE_URL)
+            if not await _is_logged_in(page):
+                return {"error": "Not logged in. Run `login` first.", "url": page.url}
+            result = await _upload(page, str(pdf), base_url=BASE_URL)
+            result["screenshot"] = await _screenshot(page, "cv_upload")
+            return result
+
+
+@mcp.tool()
 async def search_jobs(
     keywords: str = "",
     exp_level: str = "",
@@ -251,6 +308,13 @@ async def search_jobs(
         page: results page (1-based).
         limit: max results to return from this page.
     """
+    sys.path.insert(0, str(HERE.parent))
+    import candidate as C
+
+    keywords = keywords or C.search_keyword()
+    english_level = english_level or C.djinni_english_level()
+    if not salary_min:
+        salary_min = C.SALARY_FLOOR
     params: dict[str, str] = {}
     if keywords:
         params["primary_keyword"] = keywords
@@ -991,6 +1055,76 @@ async def get_profile() -> dict[str, Any]:
             return state
 
 
+_AUDIT_FIELDS_JS = """
+() => {
+  const fields = [];
+  for (const el of document.querySelectorAll('input, textarea, select')) {
+    const type = (el.getAttribute('type') || el.tagName.toLowerCase()).toLowerCase();
+    if (['hidden', 'submit', 'button', 'file'].includes(type)) continue;
+    const name = el.name || el.id || '';
+    if (!name) continue;
+    let value = '';
+    if (type === 'checkbox' || type === 'radio') {
+      if (!el.checked) continue;
+      value = el.value || 'on';
+    } else if (el.tagName === 'SELECT') {
+      const o = el.options[el.selectedIndex];
+      value = o ? o.text.trim() : el.value;
+    } else {
+      value = (el.value || '').trim();
+    }
+    const label = el.labels && el.labels[0]
+      ? el.labels[0].innerText.trim().slice(0, 80)
+      : (el.getAttribute('placeholder') || '').slice(0, 80);
+    fields.push({name, type, label, value: value.slice(0, 200), empty: !value});
+  }
+  const more = document.querySelector('#moreinfo');
+  const banners = [...document.querySelectorAll('.alert, .notice, .banner, [role=alert]')]
+    .map(e => (e.innerText || '').trim()).filter(Boolean).slice(0, 8);
+  return {
+    title: document.title,
+    h1: (document.querySelector('h1') || {}).innerText || '',
+    moreinfo_len: more ? (more.value || '').length : 0,
+    banners,
+    empty: fields.filter(f => f.empty && !['checkbox','radio'].includes(f.type)).map(f => ({
+      name: f.name, label: f.label
+    })),
+    filled: fields.filter(f => !f.empty).map(f => ({
+      name: f.name, label: f.label, value: f.value
+    })),
+  };
+}
+"""
+
+
+@mcp.tool()
+async def audit_profile() -> dict[str, Any]:
+    """List empty vs filled visible fields on the Djinni profile form.
+
+    Complements `get_profile`: catches blank required rows, leftover alerts,
+    and fields the structured reader does not map.
+    """
+    async with _LOCK:
+        async with browser() as (_ctx, pg):
+            await _goto(pg, PROFILE_URL)
+            if not await _is_logged_in(pg):
+                return {"error": "Not logged in. Run `login` first.", "url": pg.url}
+            state = await pg.evaluate(_PROFILE_STATE_JS)
+            dump = await pg.evaluate(_AUDIT_FIELDS_JS)
+            dump["structured"] = {
+                "position": state.get("position"),
+                "primary_keyword": state.get("primary_keyword"),
+                "salary_min": state.get("salary_min"),
+                "experience_years": state.get("experience_years"),
+                "skills": state.get("skills"),
+                "languages": state.get("languages"),
+                "moreinfo_preview": (state.get("moreinfo") or "")[:180],
+            }
+            dump["screenshot"] = await _screenshot(pg, "audit")
+            dump["url"] = pg.url
+            return dump
+
+
 @mcp.tool()
 async def update_profile(
     position: str = "",
@@ -1117,9 +1251,9 @@ async def update_profile(
                         "screenshot": shot, "url": pg.url}
 
             # Empty/incomplete language (or skill/domain) rows are required
-            # selects — HTML5 then blocks submit with no POST. Djinni added a
-            # blank Bulgarian row without a level; that silently broke salary
-            # updates until the row is removed.
+            # selects — HTML5 then blocks submit with no POST. Djinni sometimes
+            # adds a blank language row without a level; that silently breaks
+            # salary updates until the row is removed.
             stripped = await _strip_incomplete_profile_rows(pg)
             if stripped:
                 widget_results["stripped_incomplete_rows"] = stripped

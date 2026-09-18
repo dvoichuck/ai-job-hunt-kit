@@ -1,0 +1,35 @@
+{
+  "first_name": "Alex",
+  "last_name": "Candidate",
+  "headline": "Full-Stack Developer",
+  "industry": "",
+  "location": "City, Country",
+  "about": "",
+  "open_to_work": {
+    "titles": [],
+    "remote": true
+  },
+  "custom_url_candidates": [],
+  "experience": [
+    {
+      "title": "Role",
+      "company": "Company",
+      "employment_type": "Full-time",
+      "location_type": "Remote",
+      "location": "Remote",
+      "start_month": 1,
+      "start_year": 2024,
+      "end_month": 0,
+      "end_year": 0,
+      "description": "Facts from experience.md only."
+    }
+  ],
+  "education": [],
+  "skills": [],
+  "languages": [
+    {
+      "name": "English",
+      "proficiency": "Professional working proficiency"
+    }
+  ]
+}

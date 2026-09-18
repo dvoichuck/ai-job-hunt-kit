@@ -10,23 +10,23 @@ Personal name, salary, stack, and employers stay out of git. Fill `local/profile
 |---|---|
 | `local/profile.env.example` | Candidate identity, salary, skip lists, cover-letter blocks |
 | `.cursor/skills/rewrite-cv/` | Rewrite a CV from local `experience.md` → HTML → selectable PDF |
+| `.cursor/skills/shortlist-jobs/` | Search boards and score vacancies into `applications/tracker.md` |
 | `.cursor/skills/interview-prep/` | Prep doc for one vacancy (fit matrix, answers, gaps) |
 | `djinni-mcp/` | Djinni: search, apply, inbox |
 | `dou-mcp/` | DOU: search, apply (incl. external ATS), inbox |
-| `linkedin-mcp/` | LinkedIn inbox |
+| `linkedin-mcp/` | LinkedIn inbox + profile pack (`local/linkedin.pack.json`) |
+| `boards/` / `applications/` / `NEXT.md` | Board registry, vacancy tracker, working-state queue |
+| `scripts/setup.sh` | Copy example profile / MCP / pack files locally |
 | `candidate.py` / `filters.py` | Load the local profile; skip wrong-stack / skip-company jobs |
 | `.cursor/rules/` | Apply and messenger guardrails (facts only, no re-greeting) |
 
 ## First-time setup
 
 ```bash
-cp local/profile.env.example local/profile.env
-cp .cursor/skills/rewrite-cv/experience.example.md \
-   .cursor/skills/rewrite-cv/experience.md
-cp .cursor/mcp.json.example .cursor/mcp.json
+bash scripts/setup.sh
 ```
 
-Put a CV PDF on the path in `CANDIDATE_CV` (default `local/cv.pdf`).
+Fill `local/profile.env` and `experience.md`. Put a CV PDF on `CANDIDATE_CV` (default `local/cv.pdf`).
 
 Then install each MCP you need (venv + Playwright Chromium). Browsers can be shared:
 

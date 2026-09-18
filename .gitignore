@@ -12,6 +12,7 @@ browser_profile/
 local/*
 !local/README.md
 !local/profile.env.example
+boards/accounts.md
 .cursor/skills/rewrite-cv/experience.md
 .cursor/skills/rewrite-cv/old-resume.png
 .cursor/skills/rewrite-cv/preview.png

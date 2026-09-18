@@ -120,6 +120,33 @@ DOU_CATEGORIES = list(_csv("CANDIDATE_DOU_CATEGORIES"))
 STACK_YEARS = _pairs("CANDIDATE_STACK_YEARS")
 NDA_NOTE = _s("CANDIDATE_NDA_NOTE", "")
 
+_DJINNI_ENGLISH = {
+    "a1": "basic",
+    "a2": "basic",
+    "basic": "basic",
+    "b1": "pre",
+    "pre": "pre",
+    "b2": "intermediate",
+    "intermediate": "intermediate",
+    "c1": "upper",
+    "upper": "upper",
+    "c2": "fluent",
+    "fluent": "fluent",
+}
+
+
+def djinni_english_level() -> str:
+    token = ENGLISH.lower().split()[0] if ENGLISH else ""
+    return _DJINNI_ENGLISH.get(token, "")
+
+
+def search_keyword() -> str:
+    return SEARCH_KEYWORDS[0] if SEARCH_KEYWORDS else ""
+
+
+def dou_category() -> str:
+    return DOU_CATEGORIES[0] if DOU_CATEGORIES else ""
+
 
 def years_for(question: str) -> str:
     q = (question or "").lower()

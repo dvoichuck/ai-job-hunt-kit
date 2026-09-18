@@ -19,6 +19,8 @@ MCP-сервер, що дає AI-агентові (Cursor тощо) працюв
 | Інструмент | Що робить |
 |---|---|
 | `login` | Відкриває видиме вікно — ти логінишся вручну (email, Google, LinkedIn, GitHub, Facebook, капча). Сесія зберігається. |
+| `session_status` | Чи сесія жива. |
+| `apply_profile_pack` | Заповнити профіль з `local/profile.env` (`update_profile(apply_defaults=True)`). |
 | `search_jobs` | Пошук вакансій (category, keywords, remote, exp_level, city). |
 | `get_job` | Повний опис вакансії + чи ти вже відгукувався. |
 | `apply` | Надіслати відгук: нативна форма DOU **або зовнішній ATS** (PeopleForce, Teamtailor, TalentLyft, Greenhouse, Lever, Workable, generic). `confirm=False` — заповнює без сабміту. Невідомі screening-питання → `needs_review` (без вигадок). Капча → `needs_captcha`. |

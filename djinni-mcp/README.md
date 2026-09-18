@@ -15,6 +15,11 @@ MCP-сервер, що дає AI-агентові (Cursor тощо) працюв
 | Інструмент | Що робить |
 |---|---|
 | `login` | Відкриває видиме вікно браузера — ти логінишся вручну (email, Google, LinkedIn, капча). Сесія зберігається. |
+| `session_status` | Чи сесія жива. |
+| `apply_profile_pack` | Заповнити профіль з `local/profile.env`. |
+| `get_profile` | Структуровані поля профілю. |
+| `audit_profile` | Порожні vs заповнені поля форми + банери. |
+| `upload_cv` | Залити PDF з `CANDIDATE_CV` у профіль. |
 | `search_jobs` | Пошук вакансій за фільтрами (keywords, exp_level, english_level, employment, company_type, salary_min, page). |
 | `get_job` | Повний опис вакансії + чи ти вже відгукувався. |
 | `apply` | Надіслати відгук із супровідним листом. Є `confirm=False` — «сухий» прогін без надсилання. |

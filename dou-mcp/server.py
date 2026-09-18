@@ -602,6 +602,27 @@ async def login(wait_seconds: int = 180) -> str:
 
 
 @mcp.tool()
+async def session_status() -> dict[str, Any]:
+    """Check whether the Playwright profile is logged in."""
+    async with _LOCK:
+        async with browser() as (_ctx, page):
+            await _goto(page, SITE_URL + "/")
+            logged = await _is_logged_in(page)
+            return {
+                "logged_in": logged,
+                "url": page.url,
+                "screenshot": await _screenshot(page, "session"),
+                "hint": "" if logged else "Run `login` first.",
+            }
+
+
+@mcp.tool()
+async def apply_profile_pack(confirm: bool = True) -> dict[str, Any]:
+    """Fill the DOU profile from local/profile.env / experience.md."""
+    return await update_profile(apply_defaults=True, confirm=confirm)
+
+
+@mcp.tool()
 async def search_jobs(
     category: str = "",
     keywords: str = "",
@@ -626,6 +647,11 @@ async def search_jobs(
         load_more: how many times to click «Більше вакансій» (0 = first page only).
         limit: max results to return.
     """
+    sys.path.insert(0, str(HERE.parent))
+    import candidate as C
+
+    category = category or C.dou_category()
+    keywords = keywords or C.search_keyword()
     if exp_level and exp_level not in EXP_LEVELS:
         return {"error": f"exp_level must be one of {sorted(EXP_LEVELS)}"}
 

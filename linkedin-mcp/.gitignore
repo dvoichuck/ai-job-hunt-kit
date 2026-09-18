@@ -7,3 +7,4 @@ venv/
 # Persistent browser profile with your LinkedIn session – NEVER commit this
 browser_profile/
 debug/
+pack.json
